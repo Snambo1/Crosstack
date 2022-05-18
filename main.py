@@ -3,6 +3,16 @@ import os, sys
 print(os.path.dirname(pg.__file__))
 from pygame.locals import *
 
+pg.init()
+clock = pg.time.Clock()
+
+WIN_SIZE = [900, 600]
+FPS = 60
+win = pg.display.set_mode(WIN_SIZE)
+pg.display.set_caption("Crosstack")
+
+gameRun = True
+
 class Platform(pg.sprite.Sprite):
     def __init__(self, x_pos=300, y_pos=300, width=100, height=100, color=(0, 0, 0)):
         super().__init__()
@@ -12,6 +22,7 @@ class Platform(pg.sprite.Sprite):
         self.rect.x, self.rect.y = x_pos, y_pos
         self.width, self.height = width, height
         self.color = color
+        self.inAir = False
 
 class Player(pg.sprite.Sprite):
     def __init__(self, pos=[75, 75], size=[25, 25]):
@@ -28,16 +39,10 @@ class Player(pg.sprite.Sprite):
 
     #! Use exponential growth function to model velocity growth.
     #! Use exponential decay function to reset the velocity.
-    def move(self, keys, platform):
+    def updatePlayer(self, keys, platform):
         dir = [0, 0]
-        originalPos = [self.rect.x, self.rect.y]
 
         # Manage player movement
-        if keys[pg.K_w]:
-            dir[1] = -1
-        elif self.vel[1] < 0:
-            dir[1] = 1
-
         if keys[pg.K_a]:
             dir[0] = -1
         elif self.vel[0] < 0:
@@ -45,51 +50,40 @@ class Player(pg.sprite.Sprite):
 
         if keys[pg.K_s]:
             dir[1] = 1
-        elif self.vel[1] > 0:
-            dir[1] = -1
 
         if keys[pg.K_d]:
             dir[0] = 1
         elif self.vel[0] > 0:
             dir[0] = -1
 
+        if self.vel[1] < 8:
+            self.vel[1]+=self.acc
+
         newVel = [round(self.vel[0]+self.acc*dir[0], 2), round(self.vel[1]+self.acc*dir[1], 2)]
-        if (newVel[0] <= self.maxVel and newVel[0] >= (-1 * self.maxVel)):
+        if (abs(newVel[0]) <= self.maxVel):
             self.vel[0] = newVel[0]
-        if (newVel[1] <= self.maxVel and newVel[1] >= (-1 * self.maxVel)):
+        if (abs(newVel[1]) <= self.maxVel):
             self.vel[1] = newVel[1]
 
-        if self.vel[0]:
-            self.rect.x+=self.vel[0]
-            if pg.Rect.colliderect(self.rect, platform.rect):
-                if self.rect.right > platform.rect.left and self.rect.left < platform.rect.left:
-                    self.rect.x = platform.rect.left-self.rect.width
-                elif self.rect.left < platform.rect.right and self.rect.right > platform.rect.right:
-                    self.rect.x = platform.rect.right
+        self.rect.x+=self.vel[0]
+        if pg.Rect.colliderect(self.rect, platform.rect):
+            if self.rect.left < platform.rect.left:
+                self.rect.x = platform.rect.left-self.width
+            else:
+                self.rect.x = platform.rect.right
 
-        if self.vel[1]:
-            self.rect.y+=self.vel[1]
-            if pg.Rect.colliderect(self.rect, platform.rect):
-                if self.rect.bottom > platform.rect.top and self.rect.top < platform.rect.top:
-                    self.rect.y = platform.rect.top-self.rect.height
-                elif self.rect.top < platform.rect.bottom and self.rect.bottom > platform.rect.bottom:
-                    self.rect.y = platform.rect.bottom
-
-pg.init()
-clock = pg.time.Clock()
-
-WIN_SIZE = [900, 600]
-FPS = 60
-win = pg.display.set_mode(WIN_SIZE)
-pg.display.set_caption("Crosstack")
+        self.rect.y+=self.vel[1]
+        if pg.Rect.colliderect(self.rect, platform.rect):
+            if self.rect.top < platform.rect.top:
+                self.rect.y = platform.rect.top-self.height
+            else:
+                self.rect.y = platform.rect.bottom
 
 player = Player()
-platform = Platform()
+platform = Platform(x_pos=0, width=300, height=25)
 
 allSprites = pg.sprite.Group()
 allSprites.add(platform, player)
-
-gameRun = True
 
 while gameRun:
     win.fill((255, 255, 255))
@@ -99,7 +93,10 @@ while gameRun:
 
     # Get pressed kets
     keys = pg.key.get_pressed()
-    player.move(keys, platform)
+    player.updatePlayer(keys, platform)
+
+    if keys[pg.K_SPACE]:
+        player.vel[1] = -10
 
     if keys[pg.K_q]:
         gameRun = False
