@@ -75,7 +75,7 @@ pg.init()
 clock = pg.time.Clock()
 
 WIN_SIZE = [900, 600]
-FPS = 60
+FPS = 75
 win = pg.display.set_mode(WIN_SIZE)
 pg.display.set_caption("Crosstack")
 
