@@ -33,9 +33,6 @@ class Player(pg.sprite.Sprite):
         originalPos = [self.rect.x, self.rect.y]
 
         # Manage player movement
-        if keys[pg.K_SPACE]:
-            self.vel[1] = 5
-
         if keys[pg.K_w]:
             dir[1] = -1
         elif self.vel[1] < 0:
@@ -57,25 +54,32 @@ class Player(pg.sprite.Sprite):
             dir[0] = -1
 
         newVel = [round(self.vel[0]+self.acc*dir[0], 2), round(self.vel[1]+self.acc*dir[1], 2)]
-        if (newVel[0] < self.maxVel and newVel[0] > (-1 * self.maxVel)):
+        if (newVel[0] <= self.maxVel and newVel[0] >= (-1 * self.maxVel)):
             self.vel[0] = newVel[0]
-        if (newVel[1] < self.maxVel and newVel[1] > (-1 * self.maxVel)):
+        if (newVel[1] <= self.maxVel and newVel[1] >= (-1 * self.maxVel)):
             self.vel[1] = newVel[1]
 
-        # Detect horizontal and vertical collisions
         if self.vel[0]:
-            self.rect.x = self.rect.x+self.vel[0]
-        if self.vel[1]:
-            self.rect.y = self.rect.y+self.vel[1]
+            self.rect.x+=self.vel[0]
+            if pg.Rect.colliderect(self.rect, platform.rect):
+                if self.rect.right > platform.rect.left and self.rect.left < platform.rect.left:
+                    self.rect.x = platform.rect.left-self.rect.width
+                elif self.rect.left < platform.rect.right and self.rect.right > platform.rect.right:
+                    self.rect.x = platform.rect.right
 
-        #! Solid rectangle collision detection!
-                
+        if self.vel[1]:
+            self.rect.y+=self.vel[1]
+            if pg.Rect.colliderect(self.rect, platform.rect):
+                if self.rect.bottom > platform.rect.top and self.rect.top < platform.rect.top:
+                    self.rect.y = platform.rect.top-self.rect.height
+                elif self.rect.top < platform.rect.bottom and self.rect.bottom > platform.rect.bottom:
+                    self.rect.y = platform.rect.bottom
 
 pg.init()
 clock = pg.time.Clock()
 
 WIN_SIZE = [900, 600]
-FPS = 75
+FPS = 60
 win = pg.display.set_mode(WIN_SIZE)
 pg.display.set_caption("Crosstack")
 
