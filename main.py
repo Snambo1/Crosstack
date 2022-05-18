@@ -56,6 +56,11 @@ class Player(pg.sprite.Sprite):
         elif self.vel[0] > 0:
             dir[0] = -1
 
+        if keys[pg.K_SPACE]:
+            if not self.inAir:
+                self.vel[1] = -12
+                self.inAir = True
+
         if self.vel[1] < 8:
             self.vel[1]+=self.acc
 
@@ -78,6 +83,7 @@ class Player(pg.sprite.Sprite):
                 self.rect.y = platform.rect.top-self.height
             else:
                 self.rect.y = platform.rect.bottom
+            self.inAir = False
 
 player = Player()
 platform = Platform(x_pos=0, width=300, height=25)
@@ -94,9 +100,6 @@ while gameRun:
     # Get pressed kets
     keys = pg.key.get_pressed()
     player.updatePlayer(keys, platform)
-
-    if keys[pg.K_SPACE]:
-        player.vel[1] = -10
 
     if keys[pg.K_q]:
         gameRun = False
