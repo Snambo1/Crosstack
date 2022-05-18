@@ -1,3 +1,4 @@
+from multiprocessing import Event
 import pygame as pg
 import os, sys
 print(os.path.dirname(pg.__file__))
@@ -22,7 +23,7 @@ class Player(pg.sprite.Sprite):
         self.rect.x, self.rect.y = pos[0], pos[1]
         self.vel = [0, 0]
         self.maxVel = 8
-
+        
         self.acc = 0.75
         self.width, self.height = size[0], size[1]
 
@@ -53,6 +54,14 @@ class Player(pg.sprite.Sprite):
         elif self.vel[0] > 0:
             dir[0] = -1
 
+        if self.rect.x > 900 or self.rect.x < 0:
+            print(' X Border')
+            self.rect.x = 0
+        
+        if self.rect.y > 750 or self.rect.y < 2:
+            print(' Y Border')
+            self.rect.y = 0
+
         newVel = [round(self.vel[0]+self.acc*dir[0], 2), round(self.vel[1]+self.acc*dir[1], 2)]
         if (newVel[0] <= self.maxVel and newVel[0] >= (-1 * self.maxVel)):
             self.vel[0] = newVel[0]
@@ -74,7 +83,7 @@ class Player(pg.sprite.Sprite):
                     self.rect.y = platform.rect.top-self.rect.height
                 elif self.rect.top < platform.rect.bottom and self.rect.bottom > platform.rect.bottom:
                     self.rect.y = platform.rect.bottom
-
+        
 pg.init()
 clock = pg.time.Clock()
 
@@ -84,7 +93,7 @@ win = pg.display.set_mode(WIN_SIZE)
 pg.display.set_caption("Crosstack")
 
 player = Player()
-platform = Platform()
+platform = Platform(300,300,300,30)
 
 allSprites = pg.sprite.Group()
 allSprites.add(platform, player)
